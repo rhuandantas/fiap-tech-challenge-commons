@@ -31,7 +31,6 @@ func (m *MongoConnector) GetDB() *mongo.Database {
 }
 
 func (m *MongoConnector) Close() {
-	// TODO change ctx
 	err := m.engine.Disconnect(context.TODO())
 	if err != nil {
 		log.Fatal(err.Error())

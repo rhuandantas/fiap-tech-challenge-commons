@@ -21,6 +21,11 @@ type MongoConnector struct {
 	db     *mongo.Database
 }
 
+type MongoEnvs struct {
+	DbURI  string
+	DbName string
+}
+
 func (m *MongoConnector) GetDB() *mongo.Database {
 	return m.db
 }
@@ -33,22 +38,39 @@ func (m *MongoConnector) Close() {
 	}
 }
 
+func getDbEnvs() MongoEnvs {
+	dbURI := os.Getenv("DB_URI")
+	dbName := os.Getenv("DB_NAME")
+
+	if dbURI == "" {
+		panic("DB_URI não encontrado")
+	}
+	if dbName == "" {
+		panic("DB_NAME não encontrado")
+	}
+
+	return MongoEnvs{
+		DbURI:  dbURI,
+		DbName: dbName,
+	}
+}
+
 func NewMongoConnector() MongoDBConnector {
 	var (
-		dbURI  = os.Getenv("DB_URI")
-		dbName = os.Getenv("DB_NAME")
-		err    error
+		err error
 	)
 
+	envs := getDbEnvs()
+
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	opts := options.Client().ApplyURI(dbURI).SetServerAPIOptions(serverAPI)
+	opts := options.Client().ApplyURI(envs.DbURI).SetServerAPIOptions(serverAPI)
 	// Create a new client and connect to the server
 	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
 		panic(err)
 	}
 
-	db := client.Database(dbName)
+	db := client.Database(envs.DbName)
 	// Send a ping to confirm a successful connection
 	var result bson.M
 	if err = db.RunCommand(context.TODO(), bson.D{{"ping", 1}}).Decode(&result); err != nil {

@@ -13,24 +13,25 @@ import (
 type DBConnector interface {
 	GetORM() *xorm.Engine
 	Close()
+	SyncTables(beans ...interface{}) error
 }
 
 type MySQLConnector struct {
 	engine *xorm.Engine
 }
 
-func (m MySQLConnector) GetORM() *xorm.Engine {
+func (m *MySQLConnector) GetORM() *xorm.Engine {
 	return m.engine
 }
 
-func (m MySQLConnector) Close() {
+func (m *MySQLConnector) Close() {
 	err := m.engine.Close()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 }
 
-func NewMySQLConnector(beans ...interface{}) DBConnector {
+func NewMySQLConnector() DBConnector {
 	// TODO put in env vars
 	var (
 		dbName     string
@@ -57,18 +58,14 @@ func NewMySQLConnector(beans ...interface{}) DBConnector {
 	engine.ShowSQL(true) // TODO it should come from env
 	//engine.Logger().SetLevel(log.DEBUG)
 	engine.SetMapper(names.SnakeMapper{})
-	if err = syncTables(engine, beans); err != nil {
-		log.Fatal("failed to sync tables ", err.Error())
-	}
 
 	return &MySQLConnector{
 		engine: engine,
 	}
 }
 
-// syncTables allows us to synchronize our tables on the databases: create, updates, table, columns, indexes
-func syncTables(engine *xorm.Engine, beans ...interface{}) error {
-	if err := engine.Sync(beans); err != nil {
+func (m *MySQLConnector) SyncTables(beans ...interface{}) error {
+	if err := m.engine.Sync(beans); err != nil {
 		return err
 	}
 

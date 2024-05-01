@@ -11,7 +11,7 @@ import (
 	"os"
 )
 
-type DBConnector interface {
+type MongoDBConnector interface {
 	GetDB() *mongo.Database
 	Close()
 }
@@ -33,7 +33,7 @@ func (m *MongoConnector) Close() {
 	}
 }
 
-func NewMySQLConnector() DBConnector {
+func NewMongoConnector() MongoDBConnector {
 	var (
 		dbURI  = os.Getenv("DB_URI")
 		dbName = os.Getenv("DB_NAME")

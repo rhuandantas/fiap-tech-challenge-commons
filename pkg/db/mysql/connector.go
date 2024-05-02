@@ -65,9 +65,5 @@ func NewMySQLConnector() DBConnector {
 }
 
 func (m *MySQLConnector) SyncTables(beans ...interface{}) error {
-	if err := m.engine.Sync(beans); err != nil {
-		return err
-	}
-
-	return nil
+	return m.engine.Sync(beans...)
 }

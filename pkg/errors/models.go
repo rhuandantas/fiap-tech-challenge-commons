@@ -15,4 +15,5 @@ var (
 	NotFound     = errorx.CommonErrors.NewType("not_found", errorx.NotFound())
 	BadRequest   = errorx.CommonErrors.NewType("bad_request")
 	Unauthorized = errorx.CommonErrors.NewType("unauthorized")
+	ClientError  = errorx.CommonErrors.NewType("client_error")
 )

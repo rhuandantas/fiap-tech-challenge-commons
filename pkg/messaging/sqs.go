@@ -21,7 +21,7 @@ type SqsClient struct {
 	client *sqs.Client
 }
 
-func NewSqsClient() SqsClient {
+func NewSqsClient() Client {
 	var (
 		awsRegion = os.Getenv(AwsRegion)
 	)

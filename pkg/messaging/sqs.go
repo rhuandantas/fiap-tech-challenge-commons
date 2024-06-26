@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"log"
+	"os"
 	"time"
 )
 
@@ -21,17 +22,17 @@ type SqsClient struct {
 }
 
 func NewSqsClient() SqsClient {
-	//var (
-	//	awsRegion = os.Getenv(AwsRegion)
-	//)
-	//
-	//if awsRegion == "" {
-	//	log.Fatalf("AWS_REGION environment variable not set")
-	//}
+	var (
+		awsRegion = os.Getenv(AwsRegion)
+	)
+
+	if awsRegion == "" {
+		log.Fatalf("AWS_REGION environment variable not set")
+	}
 	//sess := session.Must(session.NewSessionWithOptions(session.Options{
 	//	SharedConfigState: session.SharedConfigEnable,
 	//}))
-	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion("us-east-1"))
+	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion(awsRegion))
 	if err != nil {
 		log.Fatalf("unable to load SDK config, %v", err)
 	}

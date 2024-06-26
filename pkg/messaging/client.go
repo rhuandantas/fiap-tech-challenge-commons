@@ -4,7 +4,7 @@ import "context"
 
 type Client interface {
 	Publish(ctx context.Context, queueName string, message any) error
-	Listen(ctx context.Context, queueUrl string, handler MessageHandler) error
+	Listen(ctx context.Context, queueUrl string, handler MessageHandler)
 }
 
 type MessageAttr map[string]string

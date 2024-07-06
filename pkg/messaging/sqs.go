@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"log"
+	"os"
 	"time"
 )
 
@@ -20,18 +21,18 @@ type SqsClient struct {
 	client *sqs.Client
 }
 
-func NewSqsClient() SqsClient {
-	//var (
-	//	awsRegion = os.Getenv(AwsRegion)
-	//)
-	//
-	//if awsRegion == "" {
-	//	log.Fatalf("AWS_REGION environment variable not set")
-	//}
+func NewSqsClient() Client {
+	var (
+		awsRegion = os.Getenv(AwsRegion)
+	)
+
+	if awsRegion == "" {
+		log.Fatalf("AWS_REGION environment variable not set")
+	}
 	//sess := session.Must(session.NewSessionWithOptions(session.Options{
 	//	SharedConfigState: session.SharedConfigEnable,
 	//}))
-	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion("us-east-1"))
+	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion(awsRegion))
 	if err != nil {
 		log.Fatalf("unable to load SDK config, %v", err)
 	}
@@ -60,12 +61,12 @@ func (s SqsClient) Publish(ctx context.Context, queueUrl string, message any) er
 	return nil
 }
 
-func (s SqsClient) Listen(ctx context.Context, queueUrl string, handler MessageHandler) error {
+func (s SqsClient) Listen(ctx context.Context, queueUrl string, handler MessageHandler) {
 	for {
 		select {
 		case <-ctx.Done():
 			fmt.Println("Listener is shutting down...")
-			return nil
+			return
 		default:
 			receiveMessageInput := &sqs.ReceiveMessageInput{
 				QueueUrl:            aws.String(queueUrl),
@@ -81,7 +82,6 @@ func (s SqsClient) Listen(ctx context.Context, queueUrl string, handler MessageH
 			}
 
 			if len(result.Messages) == 0 {
-				fmt.Println("No messages received")
 				time.Sleep(2 * time.Second) // Delay before next receive attempt
 				continue
 			}
@@ -93,7 +93,7 @@ func (s SqsClient) Listen(ctx context.Context, queueUrl string, handler MessageH
 				if err != nil {
 					log.Printf("Failed to handle message: %v", err)
 					time.Sleep(5 * time.Second)
-					return nil
+					continue
 				}
 
 				deleteMessageInput := &sqs.DeleteMessageInput{
@@ -104,7 +104,7 @@ func (s SqsClient) Listen(ctx context.Context, queueUrl string, handler MessageH
 				_, err = s.client.DeleteMessage(ctx, deleteMessageInput)
 				if err != nil {
 					log.Printf("Failed to delete message: %v", err)
-					// Optionally, add message to a dead-letter queue or retry deleting
+					// Optionally, retry deleting or handle the failure
 				} else {
 					fmt.Println("Message deleted successfully")
 				}
